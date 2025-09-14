@@ -80,6 +80,14 @@
       font-size: 12px;
       color: #555;
     }
+
+    /* Thank-you message */
+    .thank-you {
+      display: none;
+      text-align: center;
+      font-size: 28px;
+      color: black;
+    }
   </style>
 </head>
 <body>
@@ -94,6 +102,8 @@
       <h2>Join the list + get free weekly writing advice from Shirin!</h2>
       <form action="https://formspree.io/f/xyzdayve" method="POST">
         <input type="email" name="email" placeholder="Enter your email" required>
+        <!-- Redirect back to homepage -->
+        <input type="hidden" name="_redirect" value="https://storyeditingagency.com/?success=true">
         <br>
         <button type="submit">Subscribe</button>
       </form>
@@ -102,9 +112,21 @@
     </div>
   </div>
 
+  <!-- Thank You Message -->
+  <div class="thank-you" id="thankYouMessage">
+    Thank you!
+  </div>
+
   <script>
     // Show popup after delay unless closed before
     window.onload = function() {
+      // Check for success redirect
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("success") === "true") {
+        document.getElementById("thankYouMessage").style.display = "block";
+        return; // don't show popup
+      }
+
       if (!sessionStorage.getItem("popupClosed")) {
         setTimeout(function() {
           document.getElementById("newsletterPopup").style.display = "flex";
