@@ -1,50 +1,105 @@
-<!-- Popup -->
-<div class="popup" id="newsletterPopup">
+<!-- ========== Newsletter Popup ========== -->
+<style>
+  .popup {
+    position: fixed;
+    inset: 0;
+    display: none;
+    place-items: center;
+    background: rgba(0,0,0,.45);
+    z-index: 9999;
+  }
+  .popup[aria-hidden="false"] { display: grid; }
+
+  .popup-content {
+    width: min(92vw, 420px);
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px 22px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    font-family: system-ui, sans-serif;
+    position: relative;
+  }
+  .popup h2 { margin: 0 0 10px; font-size: 1.25rem; }
+  .popup form { display: grid; gap: 10px; margin-top: 14px; }
+  .popup input[type="email"] {
+    padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px;
+  }
+  .popup button[type="submit"] {
+    padding: 12px; border: none; border-radius: 8px; background: #111; color: #fff; cursor: pointer;
+  }
+  .popup .close-btn {
+    position: absolute; top: 8px; right: 8px;
+    background: #eee; border: none; border-radius: 50%; width: 30px; height: 30px;
+    font-size: 18px; line-height: 0; cursor: pointer;
+  }
+  .thankyou { display:none; margin-top:10px; color:#1b7a2a; font-weight:600; }
+  .privacy { font-size: .8rem; color:#777; margin-top: 6px; }
+</style>
+
+<div class="popup" id="newsletterPopup" aria-hidden="true">
   <div class="popup-content">
+    <button class="close-btn" type="button" id="popupClose">×</button>
     <h2>Join the list + get free weekly writing advice from Shirin!</h2>
-    <form id="newsletterForm">
+
+    <form id="newsletterForm" novalidate>
       <input type="email" name="email" placeholder="Enter your email" required>
-      <br>
       <button type="submit">Subscribe</button>
     </form>
-    <button class="close-btn" onclick="closePopup()">Close</button>
-    <p style="font-size: 12px; color: #666; margin-top: 10px;">We respect your privacy.</p>
-    <p id="thankYouMessage" style="display:none; color: green; margin-top: 15px;">Thank you!</p>
+
+    <div class="thankyou" id="thankYouMessage">Thank you!</div>
+    <p class="privacy">We respect your privacy.</p>
   </div>
 </div>
 
 <script>
-  // Show popup after a short delay
-  window.onload = function() {
-    setTimeout(function() {
-      document.getElementById("newsletterPopup").style.display = "flex";
-    }, 2000); // popup appears after 2 seconds
-  };
+(function(){
+  const popup = document.getElementById("newsletterPopup");
+  const form  = document.getElementById("newsletterForm");
+  const thank = document.getElementById("thankYouMessage");
+  const close = document.getElementById("popupClose");
+  const STORAGE_KEY = "subscribed";
 
-  function closePopup() {
-    document.getElementById("newsletterPopup").style.display = "none";
+  function openPopup(){
+    if (localStorage.getItem(STORAGE_KEY)==="true") return;
+    popup.setAttribute("aria-hidden","false");
+    document.documentElement.style.overflow="hidden";
+  }
+  function closePopup(){
+    popup.setAttribute("aria-hidden","true");
+    document.documentElement.style.overflow="";
   }
 
-  // Handle form submission with JavaScript
-  document.getElementById("newsletterForm").addEventListener("submit", function(e) {
-    e.preventDefault(); // stop default redirect
-    const form = e.target;
+  // Show after 2s
+  window.addEventListener("load",()=>setTimeout(openPopup,2000));
+  close.addEventListener("click",closePopup);
+  popup.addEventListener("click",e=>{if(e.target===popup)closePopup();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closePopup();});
 
-    fetch("https://formspree.io/f/xyzdayve", {
-      method: "POST",
-      body: new FormData(form),
-      headers: { 'Accept': 'application/json' }
-    })
-    .then(response => {
-      if (response.ok) {
-        form.style.display = "none"; // hide form
-        document.getElementById("thankYouMessage").style.display = "block"; // show thank you
+  form.addEventListener("submit",async e=>{
+    e.preventDefault();
+    const email = form.email.value.trim();
+    if(!email){form.email.reportValidity(); return;}
+
+    try {
+      const res = await fetch("https://formspree.io/f/xyzdayve",{
+        method:"POST",
+        headers:{
+          "Accept":"application/json",
+          "Content-Type":"application/json"
+        },
+        body: JSON.stringify({email})
+      });
+
+      if(res.ok){
+        form.style.display="none";
+        thank.style.display="block";
+        localStorage.setItem(STORAGE_KEY,"true");
       } else {
-        alert("Oops! Something went wrong. Please try again.");
+        alert("Something went wrong. Please try again.");
       }
-    })
-    .catch(error => {
-      alert("Error: " + error);
-    });
+    } catch(err){
+      alert("Network error. Please try again.");
+    }
   });
+})();
 </script>
