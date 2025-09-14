@@ -53,7 +53,7 @@
     }
     .popup-content h2 {
       margin-top: 0;
-      font-size: 24px;
+      font-size: 22px;
       color: black;
     }
     .popup-content input[type="email"] {
@@ -75,6 +75,11 @@
       margin-top: 10px;
       background: #888;
     }
+    .privacy {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #555;
+    }
   </style>
 </head>
 <body>
@@ -93,19 +98,23 @@
         <button type="submit">Subscribe</button>
       </form>
       <button class="close-btn" onclick="closePopup()">Close</button>
+      <div class="privacy">We respect your privacy.</div>
     </div>
   </div>
 
   <script>
-    // Show popup after a short delay
+    // Show popup after delay unless closed before
     window.onload = function() {
-      setTimeout(function() {
-        document.getElementById("newsletterPopup").style.display = "flex";
-      }, 2000); // popup appears after 2 seconds
+      if (!sessionStorage.getItem("popupClosed")) {
+        setTimeout(function() {
+          document.getElementById("newsletterPopup").style.display = "flex";
+        }, 2000); // popup appears after 2 seconds
+      }
     };
 
     function closePopup() {
       document.getElementById("newsletterPopup").style.display = "none";
+      sessionStorage.setItem("popupClosed", "true"); // remember for session
     }
   </script>
 </body>
