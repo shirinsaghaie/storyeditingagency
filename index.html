@@ -1,105 +1,193 @@
-<!-- ========== Newsletter Popup ========== -->
-<style>
-  .popup {
-    position: fixed;
-    inset: 0;
-    display: none;
-    place-items: center;
-    background: rgba(0,0,0,.45);
-    z-index: 9999;
-  }
-  .popup[aria-hidden="false"] { display: grid; }
-
-  .popup-content {
-    width: min(92vw, 420px);
-    background: #fff;
-    border-radius: 14px;
-    padding: 24px 22px;
-    box-shadow: 0 20px 60px rgba(0,0,0,.25);
-    font-family: system-ui, sans-serif;
-    position: relative;
-  }
-  .popup h2 { margin: 0 0 10px; font-size: 1.25rem; }
-  .popup form { display: grid; gap: 10px; margin-top: 14px; }
-  .popup input[type="email"] {
-    padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px;
-  }
-  .popup button[type="submit"] {
-    padding: 12px; border: none; border-radius: 8px; background: #111; color: #fff; cursor: pointer;
-  }
-  .popup .close-btn {
-    position: absolute; top: 8px; right: 8px;
-    background: #eee; border: none; border-radius: 50%; width: 30px; height: 30px;
-    font-size: 18px; line-height: 0; cursor: pointer;
-  }
-  .thankyou { display:none; margin-top:10px; color:#1b7a2a; font-weight:600; }
-  .privacy { font-size: .8rem; color:#777; margin-top: 6px; }
-</style>
-
-<div class="popup" id="newsletterPopup" aria-hidden="true">
-  <div class="popup-content">
-    <button class="close-btn" type="button" id="popupClose">×</button>
-    <h2>Join the list + get free weekly writing advice from Shirin!</h2>
-
-    <form id="newsletterForm" novalidate>
-      <input type="email" name="email" placeholder="Enter your email" required>
-      <button type="submit">Subscribe</button>
-    </form>
-
-    <div class="thankyou" id="thankYouMessage">Thank you!</div>
-    <p class="privacy">We respect your privacy.</p>
-  </div>
-</div>
-
-<script>
-(function(){
-  const popup = document.getElementById("newsletterPopup");
-  const form  = document.getElementById("newsletterForm");
-  const thank = document.getElementById("thankYouMessage");
-  const close = document.getElementById("popupClose");
-  const STORAGE_KEY = "subscribed";
-
-  function openPopup(){
-    if (localStorage.getItem(STORAGE_KEY)==="true") return;
-    popup.setAttribute("aria-hidden","false");
-    document.documentElement.style.overflow="hidden";
-  }
-  function closePopup(){
-    popup.setAttribute("aria-hidden","true");
-    document.documentElement.style.overflow="";
-  }
-
-  // Show after 2s
-  window.addEventListener("load",()=>setTimeout(openPopup,2000));
-  close.addEventListener("click",closePopup);
-  popup.addEventListener("click",e=>{if(e.target===popup)closePopup();});
-  document.addEventListener("keydown",e=>{if(e.key==="Escape")closePopup();});
-
-  form.addEventListener("submit",async e=>{
-    e.preventDefault();
-    const email = form.email.value.trim();
-    if(!email){form.email.reportValidity(); return;}
-
-    try {
-      const res = await fetch("https://formspree.io/f/xyzdayve",{
-        method:"POST",
-        headers:{
-          "Accept":"application/json",
-          "Content-Type":"application/json"
-        },
-        body: JSON.stringify({email})
-      });
-
-      if(res.ok){
-        form.style.display="none";
-        thank.style.display="block";
-        localStorage.setItem(STORAGE_KEY,"true");
-      } else {
-        alert("Something went wrong. Please try again.");
-      }
-    } catch(err){
-      alert("Network error. Please try again.");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>STORY EDITING AGENCY</title>
+  <style>
+    /* Base page (background stays visible) */
+    :root { --bg: #fff; --fg: #000; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
-  });
-})();
-</script>
+    .container { text-align: center; padding: 20px; }
+    h1 { font-size: 48px; margin: 0 0 8px; }
+    p  { font-size: 24px; margin: 0; }
+
+    /* Popup overlay */
+    .popup {
+      position: fixed;
+      inset: 0;
+      display: none;            /* toggled via JS */
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.6);
+      z-index: 9999;
+    }
+    .popup[aria-hidden="false"] { display: flex; }
+
+    .popup-content {
+      width: min(90vw, 400px);
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      padding: 24px 22px;
+      text-align: center;
+      position: relative;
+    }
+    .popup-content h2 {
+      margin: 0 0 10px;
+      font-size: 22px; color: #000;
+    }
+    .popup-content form {
+      margin-top: 12px;
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+    }
+    .popup-content input[type="email"]{
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .popup-content button[type="submit"]{
+      padding: 10px 16px;
+      border: none;
+      background: #000; color: #fff;
+      border-radius: 6px; cursor: pointer;
+    }
+    .close-btn {
+      position: absolute; top: 8px; right: 8px;
+      width: 30px; height: 30px; border: 0;
+      border-radius: 50%; background: #eee;
+      cursor: pointer; font-size: 18px; line-height: 0;
+    }
+    .privacy { margin-top: 12px; font-size: 12px; color: #555; }
+
+    /* Thank-you inside popup */
+    .thank-you { display: none; font-size: 22px; color: #000; margin-top: 8px; }
+    .thank-you.show { display: block; }
+
+    /* Stack form on small screens */
+    @media (max-width: 420px){
+      .popup-content form { grid-template-columns: 1fr; }
+      .popup-content button[type="submit"]{ width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background content stays visible -->
+  <div class="container">
+    <h1>STORY EDITING AGENCY</h1>
+    <p>mail@storyeditingagency.com</p>
+  </div>
+
+  <!-- Popup -->
+  <div class="popup" id="newsletterPopup" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="nl-title">
+    <div class="popup-content">
+      <button class="close-btn" type="button" id="popupClose" aria-label="Close">×</button>
+      <h2 id="nl-title">Join the list + get free weekly writing advice from Shirin!</h2>
+
+      <!-- No action attribute: we submit with JS to avoid redirect -->
+      <form id="newsletterForm" novalidate>
+        <input type="email" name="email" id="nl-email" placeholder="Enter your email" required autocomplete="email" />
+        <button type="submit" id="nl-submit">Subscribe</button>
+      </form>
+
+      <div class="thank-you" id="thankYouMessage" role="status" aria-live="polite">Thank you!</div>
+      <div class="privacy">We respect your privacy.</div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    const popup = document.getElementById("newsletterPopup");
+    const form  = document.getElementById("newsletterForm");
+    const thank = document.getElementById("thankYouMessage");
+    const closeBtn = document.getElementById("popupClose");
+    const emailInput = document.getElementById("nl-email");
+    const submitBtn = document.getElementById("nl-submit");
+
+    // Remember per-session if user closed it
+    const CLOSED_KEY = "sea_popup_closed";
+    // Remember permanently if subscribed (won't show again)
+    const SUBSCRIBED_KEY = "sea_subscribed";
+
+    function openPopup(){
+      if (localStorage.getItem(SUBSCRIBED_KEY) === "true") return;
+      if (sessionStorage.getItem(CLOSED_KEY) === "true") return;
+      popup.setAttribute("aria-hidden","false");
+      // keep background visible, but prevent page scroll while modal open
+      document.documentElement.style.overflow = "hidden";
+      setTimeout(()=>emailInput?.focus(), 50);
+    }
+    function closePopup(){
+      popup.setAttribute("aria-hidden","true");
+      document.documentElement.style.overflow = "";
+      sessionStorage.setItem(CLOSED_KEY, "true");
+    }
+
+    // Show popup after 2 seconds
+    window.addEventListener("load", () => setTimeout(openPopup, 2000));
+
+    // Close interactions (button, backdrop, ESC)
+    closeBtn.addEventListener("click", closePopup);
+    popup.addEventListener("click", (e)=>{ if (e.target === popup) closePopup(); });
+    document.addEventListener("keydown", (e)=>{ if (e.key === "Escape" && popup.getAttribute("aria-hidden")==="false") closePopup(); });
+
+    // AJAX submit to Formspree (no redirect)
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // basic validation
+      if (!emailInput.value || !emailInput.checkValidity()){
+        emailInput.reportValidity();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = "Submitting…";
+
+      try {
+        const endpoint = "https://formspree.io/f/xyzdayve"; // <-- your Formspree ID
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email: emailInput.value.trim() })
+        });
+
+        if (res.ok) {
+          // Swap to Thank You inside the popup, keep background page visible
+          form.style.display = "none";
+          thank.classList.add("show");
+          localStorage.setItem(SUBSCRIBED_KEY, "true");
+        } else {
+          const data = await res.json().catch(()=> ({}));
+          const msg = data?.errors?.[0]?.message || "Something went wrong. Please try again.";
+          alert(msg);
+        }
+      } catch (err) {
+        alert("Network error. Please try again.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
